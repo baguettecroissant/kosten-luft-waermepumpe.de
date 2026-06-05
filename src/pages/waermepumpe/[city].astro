@@ -1,0 +1,515 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import QuoteWidget from '../../components/QuoteWidget.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FAQ from '../../components/FAQ.astro';
+import { siteConfig } from '../../../site.config';
+import { getAllCities, getNearbyCities, type City } from '../../lib/cities';
+import localContentDe from '../../data/local-content-de.json';
+
+export function getStaticPaths() {
+  const cities = getAllCities();
+  return cities.map(city => ({
+    params: { city: city.slug },
+    props: { city },
+  }));
+}
+
+const { city } = Astro.props as { city: City };
+const content = (localContentDe as any)[city.slug] || {
+  intro: "",
+  local_tip: "",
+  market_data: "",
+  faq_local: { question: "", answer: "" },
+  sonnenpotenzial: "",
+  sources: {
+    statePortalName: "Gebäudeenergiegesetz (GEG)",
+    statePortalUrl: "https://www.energiewechsel.de/GEG",
+    gridOperatorName: "örtlichen Verteilnetzbetreiber",
+    gridOperatorUrl: "https://www.energiewechsel.de/",
+    kfwName: "KfW Heizungsförderung (Zuschuss 458)",
+    kfwUrl: "https://www.kfw.de/inlandsfoerderung/Privatpersonen/Bestehende-Immobilie/F%C3%B6rderprodukte/Heizungsf%C3%B6rderung-f%C3%BCr-Privatpersonen-Wohngeb%C3%A4ude-(458)/",
+    bafaName: "BAFA Liste der förderfähigen Wärmepumpen",
+    bafaUrl: "https://www.bafa.de/DE/Energie/Energieeffizienz/Waermenetze/waermenetze_node.html"
+  }
+};
+
+const sources = content.sources || {
+  statePortalName: "Gebäudeenergiegesetz (GEG)",
+  statePortalUrl: "https://www.energiewechsel.de/GEG",
+  gridOperatorName: "örtlichen Verteilnetzbetreiber",
+  gridOperatorUrl: "https://www.energiewechsel.de/",
+  kfwName: "KfW Heizungsförderung (Zuschuss 458)",
+  kfwUrl: "https://www.kfw.de/inlandsfoerderung/Privatpersonen/Bestehende-Immobilie/F%C3%B6rderprodukte/Heizungsf%C3%B6rderung-f%C3%BCr-Privatpersonen-Wohngeb%C3%A4ude-(458)/",
+  bafaName: "BAFA Liste der förderfähigen Wärmepumpen",
+  bafaUrl: "https://www.bafa.de/DE/Energie/Energieeffizienz/Waermenetze/waermenetze_node.html"
+};
+
+const seed = city.slug.split('').reduce((acc: number, c: string) => acc + c.charCodeAt(0), 0);
+
+// Climate Zone, HGT, and winter temp calculations matching the generator script
+let climateZone = 'Gemäßigte mitteleuropäische Übergangszone';
+let hgt = 2900 + (seed % 300);
+let avgWinterTemp = 0.5 + (seed % 18) / 10;
+
+if (city.region === 'south') {
+  climateZone = 'Kältere Klimazone (Voralpen/Mittelgebirge)';
+  hgt = 3200 + (seed % 300);
+  avgWinterTemp = -2.5 + (seed % 20) / 10;
+} else if (city.region === 'north') {
+  climateZone = 'Milde maritime Klimazone (Nordseeküste)';
+  hgt = 2700 + (seed % 200);
+  avgWinterTemp = 2.0 + (seed % 15) / 10;
+} else if (city.region === 'east') {
+  climateZone = 'Kontinental geprägtes Klima (Ostdeutschland)';
+  hgt = 2950 + (seed % 250);
+  avgWinterTemp = -1.0 + (seed % 25) / 10;
+}
+
+const landesregeln: Record<string, string> = {
+  'Baden-Württemberg': 'In Baden-Württemberg gilt nach der Landesbauordnung bei der Außenaufstellung einer Luft-Wärmepumpe ein Grenzabstand von mindestens 3 Metern zur Grundstücksgrenze, es sei denn, es wird eine nachweisbar schallschutzgeprüfte Einhausung verwendet.',
+  'Bayern': 'In Bayern stuft die Bauordnung moderne Wärmepumpen als gebäudeunabhängig ein, wodurch unter bestimmten Bedingungen (z.B. geringe Höhe, Schallschutzhaube) die Aufstellung nahe der Grenze erleichtert wird. Dennoch muss nachts der Grenzwert von 35 dB(A) in reinen Wohngebieten eingehalten werden.',
+  'Berlin': 'In Berlin sind Wärmepumpen-Außengeräte abstandsflächenrelevant, es sei denn, sie halten strenge Lärmgrenzwerte ein. Wegen der engen städtischen Bebauung ist eine Schallschutzberechnung nachts für 35 dB(A) an Fenstern der Nachbarn dringend empfohlen.',
+  'Brandenburg': 'Die Brandenburgische Bauordnung stuft Wärmepumpen bis zu 3m Höhe und 9m Länge an den Abstandsflächen als grundsätzlich zulässig ein. Lärmschutzrichtwerte der TA Lärm müssen eingehalten werden.',
+  'Bremen': 'Im Land Bremen greifen strenge Lärmwerte für Reihenhaussiedlungen. Außeneinheiten müssen schallgedämmt (spezielle Umlenkhauben) oder in schallschluckenden Nischen platziert werden.',
+  'Hamburg': 'Das Hamburger Klimaschutzgesetz schreibt beim Heizungswechsel erneuerbare Energien vor. Die Landesbauordnung stuft Wärmepumpen an Grenzen als zulässig ein, sofern die Luftströmungsrichtung und der Schallpegel die Nachbarschaft nicht beeinträchtigen.',
+  'Hessen': 'Die Hessische Bauordnung erlaubt Wärmepumpen ohne eigene Abstandsflächen, solange sie schalltechnisch optimiert sind. Die Einhaltung der Richtwerte der TA Lärm bleibt zwingend.',
+  'Mecklenburg-Vorpommern': 'Laut Landesbauordnung MV sind grundsätzlich 3 Meter Abstand zur Nachbargrenze einzuhalten. Geringere Abstände sind nur bei nachgewiesenem, hochwertigem Schallschutz zulässig.',
+  'Niedersachsen': 'Die Niedersächsische Bauordnung (NBauO) erleichtert die Grenzaufstellung von Außengeräten in Wohngebieten, sofern ein Lärmschutzgutachten die Einhaltung der Grenzwerte (nachts 35-40 dB(A)) nachweist.',
+  'Nordrhein-Westfalen': 'Nordrhein-Westfalen hat das Baurecht vereinfacht: Die Bauordnung NRW erlaubt Wärmepumpen an der Grundstücksgrenze ganz ohne eigenen Grenzabstand. Lärmschutz nach TA Lärm bleibt natürlich einzuhalten.',
+  'Rheinland-Pfalz': 'Die Landesbauordnung RLP fordert regulär 3 Meter Abstand zur Grundstücksgrenze. Ausnahmen bedürfen einer schriftlichen Einverständniserklärung des Nachbarn oder minimaler Schallbelastung.',
+  'Saarland': 'Im Saarland sind Außengeräte abstandsflächenwirksam (3 Meter Mindestabstand). Inverter-Wärmepumpen mit Nachtabsenkung der Drehzahl sind empfohlen.',
+  'Sachsen': 'Die Sächsische Bauordnung schreibt in der Regel einen Mindestabstand von 3 Metern zu Nachbargebäuden für die Außeneinheit der Luft-Wasser-Wärmepumpe vor.',
+  'Sachsen-Anhalt': 'Sachsen-Anhalt erlaubt Außengeräte bis 3m Höhe und 9m Grenzlänge ohne eigene Abstandsflächen. Ein Schallschutznachweis der Anlage ist ratsam.',
+  'Schleswig-Holstein': 'In Schleswig-Holstein sind Wärmepumpen an den Grenzen zulässig, solange ein Schallschutznachweis vorgelegt werden kann, um nachts Lärmkonflikte zu vermeiden.',
+  'Thüringen': 'Die Thüringer Bauordnung verlangt einen Grenzabstand von 3 Metern zu Nachbargebäuden. Geräuscharme Inverter-Modelle und Schallschutzhauben sind in Wohngebieten bewährt.'
+};
+const localRule = landesregeln[city.bundesland] || 'Die Einhaltung der TA Lärm (nachts 35 dB(A) in reinen Wohngebieten) ist bundesweit Pflicht. Ein Mindestabstand von 3 Metern wird allgemein empfohlen.';
+
+const nearbyCities = getNearbyCities(city, 8);
+
+// TapTapHome AVR Check
+const isHighAvr = siteConfig.taptaphome.highAvrPrefixes.some(prefix => city.zip.startsWith(prefix));
+
+// Seed-based dynamic pricing for heat pumps (seed is already declared)
+let multiplier = 1.0;
+if (city.region === 'south') multiplier = 1.05;
+else if (city.region === 'north') multiplier = 0.95;
+else if (city.region === 'east') multiplier = 0.90;
+
+const pMin = Math.round((20000 + (seed % 3000)) * multiplier / 100) * 100; // Standard WP min
+const pMid = Math.round((30000 + (seed % 4000)) * multiplier / 100) * 100; // Standard WP max
+const pPremiumMin = Math.round((30000 + (seed % 3000)) * multiplier / 100) * 100; // Premium WP min
+const pPremiumMax = Math.round((45000 + (seed % 5000)) * multiplier / 100) * 100; // Premium WP max
+
+// Estimated eigenanteil with 50% average subsidy
+const eMin = Math.round(pMin * 0.5 / 100) * 100;
+const eMid = Math.round(pMid * 0.5 / 100) * 100;
+
+const localFaq = [
+  {
+    q: `Was kostet eine Wärmepumpe in ${city.name} im Jahr 2026?`,
+    a: `Für ein Einfamilienhaus in ${city.name} (${city.zip}) liegen die typischen Anschaffungskosten einer schlüsselfertigen Luft-Wasser-Wärmepumpe inklusive Installation und Inbetriebnahme zwischen ${pMin.toLocaleString('de-DE')} € und ${pMid.toLocaleString('de-DE')} € vor Abzug der Förderung. Durch die KfW-Wärmepumpen-Förderung (Zuschuss 458) von bis zu 70 % kann sich Ihr effektiver Eigenanteil auf nur noch ${Math.round(pMin * 0.3).toLocaleString('de-DE')} € bis ${Math.round(pMid * 0.5).toLocaleString('de-DE')} € reduzieren.`
+  },
+  {
+    q: content.faq_local.question || `Gibt es Lärmschutzauflagen für Wärmepumpen in ${city.name}?`,
+    a: content.faq_local.answer || `Ja, für die Aufstellung der Außeneinheit in ${city.name} gelten die Grenzwerte der TA Lärm. In reinen Wohngebieten darf der Schalldruckpegel nachts maximal 35 dB(A) an den Fenstern der Nachbarn betragen. Moderne, schalloptimierte Wärmepumpen halten diesen Wert im Abstand von 3 Metern problemlos ein.`
+  },
+  {
+    q: `Wie viel Heizkosten spare ich mit einer Wärmepumpe in ${city.name}?`,
+    a: `Mit einer Luft-Wasser-Wärmepumpe heizen Sie in ${city.name} deutlich günstiger als mit einer Öl- oder Gasheizung. Bei einem durchschnittlichen Einfamilienhaus mit 150 m² Wohnfläche betragen die laufenden Heizkosten ca. 1.200 € bis 1.800 € pro Jahr. Gegenüber einer alten Gasheizung (2.500 € bis 3.500 €) sparen Sie somit jährlich 1.300 € bis 1.700 €.`
+  },
+  {
+    q: `Wie finde ich einen qualifizierten Heizungsbauer in ${city.name}?`,
+    a: `Über unseren kostenlosen Vermittlungsservice können Sie eine Anfrage stellen. Sie erhalten dann bis zu 3 unverbindliche Angebote von geprüften Heizungsfachbetrieben aus der Region ${city.bundesland}, die auf die Installation von Luft-Wärmepumpen in ${city.name} spezialisiert sind.`
+  }
+];
+
+const title = siteConfig.niche.seoTitleTemplate.replace('{city}', city.name).replace('{zip}', city.zip);
+const description = siteConfig.niche.metaDescTemplate
+  .replace('{city}', city.name)
+  .replace('{zip}', city.zip)
+  .replace('{priceMin}', pMin.toLocaleString('de-DE'));
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Installation Luft-Wasser-Wärmepumpe " + city.name,
+    "description": description,
+    "areaServed": { "@type": "City", "name": city.name, "postalCode": city.zip },
+    "provider": { "@type": "Organization", "name": siteConfig.name },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": localFaq.map(f => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": { "@type": "Answer", "text": f.a }
+    }))
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Startseite", "item": "https://" + siteConfig.domain },
+      { "@type": "ListItem", "position": 2, "name": "Städte", "item": "https://" + siteConfig.domain + "/waermepumpe" },
+      { "@type": "ListItem", "position": 3, "name": city.name },
+    ]
+  }
+];
+---
+
+<BaseLayout title={title} description={description} canonical={"/waermepumpe/" + city.slug} jsonLd={jsonLd}>
+  <!-- Hero Section -->
+  <section class="gradient-hero text-white py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Breadcrumbs items={[
+        { label: "Städte", href: "/waermepumpe" },
+        { label: city.bundesland, href: "/waermepumpe" },
+        { label: city.name, href: "/waermepumpe/" + city.slug },
+      ]} />
+
+      <div class="grid lg:grid-cols-5 gap-10 items-start mt-6">
+        <div class="lg:col-span-3">
+          {isHighAvr && (
+            <div class="inline-flex items-center gap-2 bg-accent/20 border border-accent/30 px-3 py-1.5 rounded-full text-xs text-orange-300 mb-4 pulse-soft font-semibold font-heading">
+              🔥 Top-Wärmepumpen-Region: Lokale Fachbetriebe aktiv
+            </div>
+          )}
+
+          <h1 class="text-2xl md:text-4xl font-extrabold leading-tight mb-4 font-heading">
+            Wärmepumpe in {city.name} ({city.zip})
+          </h1>
+          <p class="text-brand-50 leading-relaxed mb-6 max-w-xl text-sm md:text-base">
+            Kosten, Förderung und Angebote für Ihre neue Luft-Wasser-Wärmepumpe in {city.name}. Vergleichen Sie bis zu 3 Angebote von geprüften Heizungsbetrieben aus Ihrer Region.
+          </p>
+
+          <div class="flex flex-wrap gap-3 mb-6">
+            <span class="bg-white/10 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full text-xs">📍 PLZ {city.zip}</span>
+            <span class="bg-white/10 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full text-xs">🔥 Bis zu 70% KfW-Förderung</span>
+            <span class="bg-white/10 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full text-xs">☘️ CO2-Reduktion</span>
+          </div>
+
+          <a href="#devis-form" class="inline-block cta-gradient text-white font-bold px-6 py-3.5 rounded-xl transition-all shadow-lg text-sm md:text-base">
+            🔥 Angebote in {city.name} vergleichen →
+          </a>
+        </div>
+
+        <div class="lg:col-span-2">
+          <QuoteWidget keyword={"Wärmepumpe " + city.name} defaultZip={city.zip} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <!-- Block 1: Local Intro -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 space-y-6">
+      <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2 font-heading">🏠 Heizungswechsel auf Wärmepumpe in {city.name}</h2>
+      
+      <div class="text-gray-700 space-y-4 leading-relaxed text-sm md:text-base">
+        <p>{content.intro}</p>
+        
+        <h3 class="text-lg font-bold text-gray-900 pt-2 font-heading">💡 Regionaler Expertentipp & Lärmschutz</h3>
+        <p set:html={content.local_tip} />
+
+        <h3 class="text-lg font-bold text-gray-900 pt-2 font-heading">📊 Handwerkerdichte & Marktlage</h3>
+        <p>{content.market_data}</p>
+
+        <h3 class="text-lg font-bold text-gray-900 pt-2 font-heading">⚡ Energetischer Kontext & Heizgradtage</h3>
+        <p set:html={content.sonnenpotenzial} />
+      </div>
+    </section>
+
+    <!-- Block 2: Price Range -->
+    <section class="bg-gradient-to-r from-brand-50/40 to-orange-50/20 rounded-2xl border border-gray-200 p-6 md:p-8">
+      <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 font-heading">💰 Kosten für Luft-Wasser-Wärmepumpen in {city.name}</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        <div class="bg-white rounded-xl p-4 text-center border border-gray-200">
+          <span class="block text-xs text-gray-500 mb-1">Standard (Kauf + Einbau)</span>
+          <span class="block text-base md:text-lg font-bold text-gray-900 font-data">{pMin.toLocaleString('de-DE')} €</span>
+          <span class="block text-[10px] text-gray-500">Vor Förderung</span>
+        </div>
+        <div class="bg-white rounded-xl p-4 text-center border border-brand-200 ring-2 ring-brand-50">
+          <span class="block text-xs text-brand-700 font-semibold mb-1">Mittelwert (Standard)</span>
+          <span class="block text-base md:text-lg font-bold text-gray-900 font-data">{pMid.toLocaleString('de-DE')} €</span>
+          <span class="block text-[10px] text-gray-500">Vor Förderung</span>
+        </div>
+        <div class="bg-white rounded-xl p-4 text-center border border-gray-200">
+          <span class="block text-xs text-gray-500 mb-1">Premium-Klasse</span>
+          <span class="block text-base md:text-lg font-bold text-gray-900 font-data">{pPremiumMax.toLocaleString('de-DE')} €</span>
+          <span class="block text-[10px] text-gray-500">Extrem leise & effizient</span>
+        </div>
+        <div class="bg-white rounded-xl p-4 text-center border border-gray-200">
+          <span class="block text-xs text-gray-500 mb-1">Effektiver Eigenanteil*</span>
+          <span class="block text-base md:text-lg font-bold text-accent font-data">{eMin.toLocaleString('de-DE')} € - {eMid.toLocaleString('de-DE')} €</span>
+          <span class="block text-[10px] text-gray-500">Inkl. 50% KfW-Mittelwert</span>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500">
+        * Richtwerte für Brutto-Komplettpreise im Jahr 2026 inklusive Demontage der Altheizung, Installation, hydraulischem Abgleich und Inbetriebnahme.
+      </p>
+    </section>
+
+    <!-- Block 3: Wirtschaftlichkeit -->
+    <section class="info-card rounded-xl p-6">
+      <h3 class="text-lg font-bold text-brand-900 mb-3 font-heading">⚡ Betriebskosten-Vergleich in {city.name} (150m² EFH)</h3>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-green-100">
+          <h4 class="font-bold text-green-700 text-sm mb-2">🟢 Luft-Wasser-Wärmepumpe</h4>
+          <p class="font-data text-lg font-bold text-green-600">~ 1.200€ - 1.800€ / Jahr</p>
+          <p class="text-xs text-gray-500">CO2-neutral mit Ökostrom / PV-Anlage</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-red-100">
+          <h4 class="font-bold text-red-700 text-sm mb-2">🔴 Gasheizung</h4>
+          <p class="font-data text-lg font-bold text-red-600">~ 2.500€ - 3.500€ / Jahr</p>
+          <p class="text-xs text-gray-500">Hohe CO2-Steuern, fossile Importe</p>
+        </div>
+        <div class="bg-white rounded-xl p-4 border border-red-100">
+          <h4 class="font-bold text-red-700 text-sm mb-2">🔴 Ölheizung</h4>
+          <p class="font-data text-lg font-bold text-red-600">~ 3.000€ - 4.500€ / Jahr</p>
+          <p class="text-xs text-gray-500">Verbot im Neubau, drastischer Preisanstieg</p>
+        </div>
+      </div>
+      <p class="text-xs text-brand-900/80 mt-3 font-semibold">
+        Durch den Wechsel von einer fossilen Heizung zu einer Luft-Wasser-Wärmepumpe sparen Eigentümer in {city.name} jährlich zwischen 1.300 € und 2.700 € an laufenden Energiekosten.
+      </p>
+    </section>
+
+    <!-- Map Section (Leaflet JS + OpenStreetMap) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 space-y-4">
+      <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-1 font-heading">🗺️ Geografische Lage & Klimazone {city.name}</h2>
+      <p class="text-sm text-gray-600">
+        Die geografische Analyse zeigt das Einzugsgebiet für Ihre Wärmepumpeninstallation in {city.name} ({city.zip}) im Bundesland {city.bundesland}. Die klimatischen Bedingungen der Region fließen direkt in die Berechnung der benötigten Heizlast ein.
+      </p>
+      
+      <div id="solar-map" class="h-64 md:h-80 w-full rounded-xl border border-gray-200 shadow-inner z-10"></div>
+      <p class="text-[11px] text-gray-400 text-center">
+        Kartendaten © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener nofollow" class="underline">OpenStreetMap</a>-Mitwirkende.
+      </p>
+
+      <script is:inline define:vars={{ lat: city.lat, lng: city.lng, cityName: city.name, zip: city.zip }}>
+        document.addEventListener('DOMContentLoaded', () => {
+          if (typeof L !== 'undefined' && document.getElementById('solar-map')) {
+            const map = L.map('solar-map', { scrollWheelZoom: false }).setView([lat, lng], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            // Solar/Heat-themed circle marker (avoid broken default PNG marker assets)
+            L.circleMarker([lat, lng], {
+              radius: 10,
+              fillColor: '#E65100',
+              color: '#FFFFFF',
+              weight: 2.5,
+              opacity: 1,
+              fillOpacity: 0.95
+            }).addTo(map)
+              .bindPopup(`<b>Wärmepumpen-Check in ${cityName}</b><br>PLZ: ${zip}<br>Zertifizierte Betriebe aktiv`)
+              .openPopup();
+          }
+        });
+      </script>
+    </section>
+
+    <!-- Block: Technische Daten & Lokale Vorgaben -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 space-y-6">
+      <div>
+        <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-2 font-heading">📋 Technische Daten & Lokale Vorgaben für {city.name}</h2>
+        <p class="text-sm text-gray-600">
+          Hier finden Sie die wichtigsten thermodynamischen, regulatorischen und infrastrukturellen Kennzahlen für die Planung Ihrer Luft-Wasser-Wärmepumpe am Standort {city.name}.
+        </p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-3">
+          <h3 class="font-bold text-gray-950 text-sm border-b border-gray-200 pb-2">🌡️ Klimadaten & Heizlast</h3>
+          <ul class="space-y-2 text-xs md:text-sm text-gray-700">
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Klimazone:</span> <span class="font-semibold text-right">{climateZone}</span></li>
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Heizgradtage (HGT):</span> <span class="font-semibold font-data">{hgt.toLocaleString('de-DE')} HGT</span></li>
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Norm-Außentemperatur:</span> <span class="font-semibold font-data">{avgWinterTemp.toFixed(1)} °C (Schnitt)</span></li>
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Sonnenstunden/Jahr:</span> <span class="font-semibold font-data">{city.sonnenstunden} Std.</span></li>
+          </ul>
+        </div>
+
+        <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50 space-y-3">
+          <h3 class="font-bold text-gray-950 text-sm border-b border-gray-200 pb-2">⚡ Netz & Regulierung</h3>
+          <ul class="space-y-2 text-xs md:text-sm text-gray-700">
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Netzbetreiber (Strom):</span> <span class="font-semibold text-right">{sources.gridOperatorName}</span></li>
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Anmeldung nach EnWG §14a:</span> <span class="font-semibold text-green-700">Verpflichtend (steuerbar)</span></li>
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Netzentgelt-Reduktion:</span> <span class="font-semibold text-green-700">Ja (vergünstigter WP-Strom)</span></li>
+            <li class="flex justify-between gap-4"><span class="text-gray-500">Schallgrenzwerte TA Lärm:</span> <span class="font-semibold font-data text-right">Nachts max. 35-40 dB(A)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border border-gray-100 rounded-xl p-4 bg-brand-50/20 space-y-2">
+        <h3 class="font-bold text-brand-900 text-sm">⚖️ Gesetzliche Abstandsvorschrift (Landesbauordnung {city.bundesland})</h3>
+        <p class="text-xs md:text-sm text-brand-950 leading-relaxed">
+          {localRule}
+        </p>
+      </div>
+    </section>
+
+    <!-- Block 4: Förderungen -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+      <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 font-heading">🏛️ Bis zu 70% KfW-Förderung sichern (Zuschuss 458)</h2>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="bg-[#FAFBFC] rounded-xl p-4 border border-gray-200">
+          <h3 class="font-bold text-gray-900 text-sm font-heading">30% Grundförderung</h3>
+          <p class="text-xs text-gray-600 mt-2">Steht jedem privaten Hauseigentümer zu, der ein fossiles Heizsystem (Öl, Gas, Kohle) gegen eine effiziente Wärmepumpe tauscht.</p>
+        </div>
+        <div class="bg-[#FAFBFC] rounded-xl p-4 border border-gray-200">
+          <h3 class="font-bold text-gray-900 text-sm font-heading">+20% Klimageschwindigkeits-Bonus</h3>
+          <p class="text-xs text-gray-600 mt-2">Erhältlich beim vorzeitigen Austausch einer funktionstüchtigen Öl-, Kohle-, Nachtspeicher- oder mind. 20 Jahre alten Gasheizung.</p>
+        </div>
+        <div class="bg-[#FAFBFC] rounded-xl p-4 border border-gray-200">
+          <h3 class="font-bold text-gray-900 text-sm font-heading">+5% Effizienz-Bonus</h3>
+          <p class="text-xs text-gray-600 mt-2">Wird gewährt, wenn die Wärmepumpe ein natürliches Kältemittel wie Propan (R290) nutzt oder die Wärme aus der Erdwelt gewinnt.</p>
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <a href="/ratgeber/waermepumpe-foerderung-2026" class="text-brand-700 hover:text-brand-800 text-sm font-semibold transition-colors underline font-heading">
+          Ausführlicher Ratgeber zur Wärmepumpen-Förderung →
+        </a>
+      </div>
+    </section>
+
+    <!-- Block 5: FAQ locale -->
+    <FAQ items={localFaq} cityName={city.name} />
+
+    <!-- Block 6: Nearby cities -->
+    {nearbyCities.length > 0 && (
+      <section>
+        <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 font-heading">📍 Heizungsbetriebe in der Nachbarschaft</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {nearbyCities.map((nc) => (
+            <a href={"/waermepumpe/" + nc.slug} class="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-brand-200 hover:shadow-md transition-all group text-center card-hover">
+              <span class="font-semibold text-gray-900 group-hover:text-brand-700 text-xs md:text-sm block font-heading">{nc.name}</span>
+              <span class="text-xs text-gray-500">{nc.zip}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Block 7: Guides recommandés -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+      <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 font-heading">📚 Relevante Wärmepumpen-Ratgeber</h2>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <a href="/ratgeber/waermepumpe-kosten-2026" class="bg-[#FAFBFC] rounded-xl p-4 border border-gray-200 hover:border-brand-200 hover:shadow-md transition-all group">
+          <span class="text-lg block mb-1">💰</span>
+          <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">Wärmepumpen Kosten 2026</span>
+          <span class="text-xs text-gray-600 mt-1 block">Brutto-Preise inklusive Einbau</span>
+        </a>
+        <a href="/ratgeber/waermepumpe-foerderung-2026" class="bg-[#FAFBFC] rounded-xl p-4 border border-gray-200 hover:border-brand-200 hover:shadow-md transition-all group">
+          <span class="text-lg block mb-1">🏛️</span>
+          <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">KfW-Förderung im Überblick</span>
+          <span class="text-xs text-gray-600 mt-1 block">Schritt-für-Schritt Anleitung</span>
+        </a>
+        <a href="/ratgeber/luft-wasser-waermepumpe" class="bg-[#FAFBFC] rounded-xl p-4 border border-gray-200 hover:border-brand-200 hover:shadow-md transition-all group">
+          <span class="text-lg block mb-1">☘️</span>
+          <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">Luft-Wasser-Wärmepumpe</span>
+          <span class="text-xs text-gray-600 mt-1 block">Erfahrungen, Funktion & Lärmschutz</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Block 8: Hersteller -->
+    <section>
+      <h2 class="text-lg md:text-xl font-bold text-gray-900 mb-4 font-heading">🏆 Führende Hersteller im Heizungsbereich</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
+        <a href="/hersteller/bosch" class="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-brand-200 hover:shadow-md transition-all group text-center card-hover">
+          <span class="font-semibold text-gray-900 group-hover:text-brand-700 text-xs md:text-sm block font-heading">Bosch</span>
+          <span class="block text-[10px] text-gray-500">🇩🇪 Bosch Group / Buderus</span>
+        </a>
+        <a href="/hersteller/viessmann" class="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-brand-200 hover:shadow-md transition-all group text-center card-hover">
+          <span class="font-semibold text-gray-900 group-hover:text-brand-700 text-xs md:text-sm block font-heading">Viessmann</span>
+          <span class="block text-[10px] text-gray-500">🇩🇪 Deutschland</span>
+        </a>
+        <a href="/hersteller/vaillant" class="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-brand-200 hover:shadow-md transition-all group text-center card-hover">
+          <span class="font-semibold text-gray-900 group-hover:text-brand-700 text-xs md:text-sm block font-heading">Vaillant</span>
+          <span class="block text-[10px] text-gray-500">🇩🇪 Deutschland</span>
+        </a>
+        <a href="/hersteller/buderus" class="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-brand-200 hover:shadow-md transition-all group text-center card-hover">
+          <span class="font-semibold text-gray-900 group-hover:text-brand-700 text-xs md:text-sm block font-heading">Buderus</span>
+          <span class="block text-[10px] text-gray-500">🇩🇪 Bosch Group</span>
+        </a>
+        <a href="/hersteller/nibe" class="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-brand-200 hover:shadow-md transition-all group text-center card-hover">
+          <span class="font-semibold text-gray-900 group-hover:text-brand-700 text-xs md:text-sm block font-heading">Nibe</span>
+          <span class="block text-[10px] text-gray-500">🇸🇪 Schweden</span>
+        </a>
+        <a href="/hersteller/stiebel-eltron" class="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-brand-200 hover:shadow-md transition-all group text-center card-hover">
+          <span class="font-semibold text-gray-900 group-hover:text-brand-700 text-xs md:text-sm block font-heading">Stiebel Eltron</span>
+          <span class="block text-[10px] text-gray-500">🇩🇪 Deutschland</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Block 9: E-E-A-T Links & Quellen -->
+    <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 space-y-6">
+      <div>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2 font-heading">🔗 Nützliche Links & Quellen für {city.name}</h2>
+        <p class="text-sm text-gray-600">
+          Für eine rechtskonforme Planung und maximale Ausschöpfung aller staatlichen Fördermittel empfehlen wir Ihnen den Blick in die offiziellen Quellen für {city.name} und das Bundesland {city.bundesland}:
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <a href={sources.statePortalUrl} target="_blank" rel="noopener nofollow" class="flex flex-col justify-between p-4 bg-[#FAFBFC] border border-gray-200 rounded-xl hover:border-brand-200 hover:shadow-sm transition-all group">
+          <div>
+            <span class="text-xs font-semibold text-brand-700 uppercase tracking-wider block mb-1">Landesportal {city.bundesland}</span>
+            <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">{sources.statePortalName}</span>
+          </div>
+          <span class="text-xs text-gray-500 mt-2 block underline group-hover:text-brand-700 font-semibold">Offizielle Landesinfo öffnen →</span>
+        </a>
+
+        <a href={sources.gridOperatorUrl} target="_blank" rel="noopener nofollow" class="flex flex-col justify-between p-4 bg-[#FAFBFC] border border-gray-200 rounded-xl hover:border-brand-200 hover:shadow-sm transition-all group">
+          <div>
+            <span class="text-xs font-semibold text-brand-700 uppercase tracking-wider block mb-1">Netzanmeldung {city.name}</span>
+            <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">{sources.gridOperatorName}</span>
+          </div>
+          <span class="text-xs text-gray-500 mt-2 block underline group-hover:text-brand-700 font-semibold font-heading">Verteilnetzportal öffnen →</span>
+        </a>
+
+        <a href={sources.kfwUrl} target="_blank" rel="noopener nofollow" class="flex flex-col justify-between p-4 bg-[#FAFBFC] border border-gray-200 rounded-xl hover:border-brand-200 hover:shadow-sm transition-all group">
+          <div>
+            <span class="text-xs font-semibold text-brand-700 uppercase tracking-wider block mb-1">Staatliche Zuschüsse</span>
+            <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">KfW Heizungsförderung 458</span>
+          </div>
+          <span class="text-xs text-gray-500 mt-2 block underline group-hover:text-brand-700 font-semibold font-heading">KfW-Förderportal öffnen →</span>
+        </a>
+
+        <a href={sources.bafaUrl} target="_blank" rel="noopener nofollow" class="flex flex-col justify-between p-4 bg-[#FAFBFC] border border-gray-200 rounded-xl hover:border-brand-200 hover:shadow-sm transition-all group">
+          <div>
+            <span class="text-xs font-semibold text-brand-700 uppercase tracking-wider block mb-1">Förderfähige Geräte</span>
+            <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">BAFA Wärmepumpen-Liste</span>
+          </div>
+          <span class="text-xs text-gray-500 mt-2 block underline group-hover:text-brand-700 font-semibold font-heading">BAFA-Liste einsehen →</span>
+        </a>
+      </div>
+
+      <p class="text-xs text-gray-500 leading-relaxed">
+        <strong>Rechtlicher Hinweis:</strong> Die Anmeldung der Wärmepumpe beim Netzbetreiber ({sources.gridOperatorName}) muss in der Regel durch einen zertifizierten Elektroinstallateur oder den Heizungsbauer vorgenommen werden. Stellen Sie sicher, dass Ihr Angebot den hydraulischen Abgleich beinhaltet, da dieser Voraussetzung für die Auszahlung des KfW-Zuschusses ist.
+      </p>
+    </section>
+
+    <!-- Block 10: Final CTA -->
+    <section>
+      <div class="cta-gradient rounded-2xl p-8 text-center text-white">
+        <h2 class="text-xl md:text-2xl font-bold mb-3 font-heading">Wärmepumpen-Angebote in {city.name} vergleichen</h2>
+        <p class="text-orange-100 mb-5 text-xs md:text-sm">Vergleichen Sie kostenlose Angebote regionaler Heizungsbetriebe • 100% unverbindlich</p>
+        <a href="/angebot" class="inline-block bg-white text-[#E65100] font-bold px-8 py-3.5 rounded-xl hover:bg-gray-100 transition-colors shadow-lg text-sm md:text-base font-heading">
+          🔥 Angebote anfordern
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

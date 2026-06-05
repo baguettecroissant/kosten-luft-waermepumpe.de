@@ -1,0 +1,434 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteConfig } from '../../../site.config';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Kostenrechner für Luft-Wasser-Wärmepumpen 2026",
+    "description": "Berechnen Sie kostenlos die Anschaffungskosten, die staatliche KfW-Förderung und das jährliche Ersparnispotenzial Ihrer neuen Luft-Wasser-Wärmepumpe.",
+    "url": "https://" + siteConfig.domain + "/kostenrechner",
+  }
+];
+---
+
+<BaseLayout
+  title={`Wärmepumpen Kostenrechner 2026: Preise & Ersparnis berechnen | ${siteConfig.name}`}
+  description={`Berechnen Sie in 2 Minuten die Anschaffungskosten, die staatliche Förderung (bis zu 70%) und die laufenden Stromkosten einer neuen Wärmepumpe.`}
+  canonical="/kostenrechner"
+  jsonLd={jsonLd}
+>
+  <section class="gradient-hero text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Breadcrumbs items={[
+        { label: "Kostenrechner", href: "/kostenrechner" },
+      ]} />
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4 font-heading mt-6">
+        🧮 Wärmepumpen Kosten- & Fördermittelrechner
+      </h1>
+      <p class="text-green-100 text-lg max-w-2xl">
+        Ermitteln Sie die Anschaffungskosten, Ihren staatlichen KfW-Zuschuss (bis zu 70%) und die jährlichen Heizkosten im Vergleich zu Gas und Öl.
+      </p>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid lg:grid-cols-12 gap-8 items-start">
+      <!-- Form Card -->
+      <div class="lg:col-span-7 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8 space-y-6">
+        <h2 class="text-xl font-bold text-gray-900 border-b border-gray-100 pb-3 font-heading flex items-center gap-2">
+          <span>📋</span> Ihre Projektdaten
+        </h2>
+
+        <div class="space-y-6">
+          <!-- Beheizte Wohnfläche -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-sm font-semibold text-gray-900">
+                Beheizte Wohnfläche:
+              </label>
+              <span class="font-data text-accent-500 font-extrabold text-lg" id="area-val">150 m²</span>
+            </div>
+            <input
+              type="range"
+              id="area"
+              min="80"
+              max="250"
+              value="150"
+              step="10"
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
+            />
+            <div class="flex justify-between text-xs text-gray-500 px-1 mt-1">
+              <span>80 m² (Kompakt)</span>
+              <span>150 m² (Standard)</span>
+              <span>250 m² (Großzügig)</span>
+            </div>
+          </div>
+
+          <!-- Bisheriger fossiler Verbrauch (Gas/Öl) -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="block text-sm font-semibold text-gray-900">
+                Bisheriger Gas- oder Ölverbrauch (pro Jahr):
+              </label>
+              <span class="font-data text-accent-500 font-extrabold text-lg" id="fossil-val">20.000 kWh</span>
+            </div>
+            <input
+              type="range"
+              id="fossil"
+              min="10000"
+              max="35000"
+              value="20000"
+              step="1000"
+              class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
+            />
+            <div class="flex justify-between text-xs text-gray-500 px-1 mt-1">
+              <span>10.000 kWh (Reihenhaus)</span>
+              <span>20.000 kWh (Einfamilienhaus)</span>
+              <span>35.000 kWh (Altbau)</span>
+            </div>
+          </div>
+
+          <!-- Wärmepumpen-Kategorie -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Wärmepumpen-Kategorie:</label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="border-2 border-brand-600 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-brand-50" id="wp-standard-lbl">
+                <input type="radio" name="wp-type" value="standard" checked class="hidden" />
+                <span class="text-lg">⚙️ Standard</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Standard Luft-Wasser-WP</span>
+                <span class="text-[10px] text-gray-500">z.B. Stiebel Eltron, Buderus</span>
+              </label>
+              <label class="border-2 border-gray-200 hover:border-brand-200 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-white" id="wp-premium-lbl">
+                <input type="radio" name="wp-type" value="premium" class="hidden" />
+                <span class="text-lg">⭐ Premium (Propan R290)</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Premium Luft-Wasser-WP</span>
+                <span class="text-[10px] text-gray-500">z.B. Bosch, Viessmann, Vaillant</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Heizkörpertyp / Wärmeabgabe -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Vorhandenes Heizsystem / Wärmeabgabe:</label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="border-2 border-brand-600 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-brand-50" id="heat-floor-lbl">
+                <input type="radio" name="heat-system" value="floor" checked class="hidden" />
+                <span class="text-lg">🦶 Fußboden</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Fußbodenheizung</span>
+                <span class="text-[10px] text-gray-500">Vorlauf ~35°C (Sehr effizient)</span>
+              </label>
+              <label class="border-2 border-gray-200 hover:border-brand-200 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-white" id="heat-lowtemp-lbl">
+                <input type="radio" name="heat-system" value="lowtemp" class="hidden" />
+                <span class="text-lg">🎛️ Niedertemp</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Niedertemp.-Heizkörper</span>
+                <span class="text-[10px] text-gray-500">Vorlauf ~45°C (Gut geeignet)</span>
+              </label>
+              <label class="border-2 border-gray-200 hover:border-brand-200 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-white" id="heat-standard-lbl">
+                <input type="radio" name="heat-system" value="standard" class="hidden" />
+                <span class="text-lg">🧱 Standard</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Standard-Heizkörper</span>
+                <span class="text-[10px] text-gray-500">Vorlauf ≥55°C (Grenzwertig)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Region / Standort -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-900 mb-2">Region (für klimatische Bedingungen & Preise):</label>
+            <div class="grid grid-cols-4 gap-2">
+              <label class="border-2 border-brand-600 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-brand-50" id="region-south-lbl">
+                <input type="radio" name="region" value="south" checked class="hidden" />
+                <span class="text-lg">☀️ Süd</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Süddeutschland</span>
+                <span class="text-[10px] text-gray-500">BY, BW (+5% Kosten)</span>
+              </label>
+              <label class="border-2 border-gray-200 hover:border-brand-200 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-white" id="region-center-lbl">
+                <input type="radio" name="region" value="center" class="hidden" />
+                <span class="text-lg">⛅ Mitte</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Mitteldeutschland</span>
+                <span class="text-[10px] text-gray-500">HE, NRW, RP (Basis)</span>
+              </label>
+              <label class="border-2 border-gray-200 hover:border-brand-200 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-white" id="region-north-lbl">
+                <input type="radio" name="region" value="north" class="hidden" />
+                <span class="text-lg">☁️ Nord</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Norddeutschland</span>
+                <span class="text-[10px] text-gray-500">NDS, SH, HH (-5% Kosten)</span>
+              </label>
+              <label class="border-2 border-gray-200 hover:border-brand-200 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-white" id="region-east-lbl">
+                <input type="radio" name="region" value="east" class="hidden" />
+                <span class="text-lg">🌤️ Ost</span>
+                <span class="text-xs font-bold text-gray-900 mt-1">Ostdeutschland</span>
+                <span class="text-[10px] text-gray-500">SN, ST, BB (-10% Kosten)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Altgeräte Austausch (Klimabonus) -->
+          <div class="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="alt-boiler"
+              checked
+              class="w-5 h-5 rounded border-gray-300 text-brand-600 focus:ring-brand-500 mt-0.5 cursor-pointer accent-brand-600"
+            />
+            <div class="cursor-pointer select-none">
+              <label for="alt-boiler" class="block text-sm font-semibold text-gray-900 cursor-pointer">
+                Austausch einer alten fossilen Heizung
+              </label>
+              <p class="text-xs text-gray-600 mt-0.5">
+                Ich ersetze eine funktionierende Öl-, Kohle-, Nachtspeicher- oder mind. 20 Jahre alte Gasheizung (+20% Klimageschwindigkeits-Bonus).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div class="lg:col-span-5 bg-brand-800 text-white rounded-2xl border border-brand-900 shadow-lg p-6 md:p-8 space-y-6">
+        <h2 class="text-xl font-bold text-accent-400 border-b border-brand-700 pb-3 font-heading flex items-center gap-2">
+          <span>✨</span> Berechnete Ergebnisse
+        </h2>
+
+        <!-- Effizienz / JAZ -->
+        <div class="flex justify-between items-center py-2 border-b border-brand-700/50">
+          <span class="text-sm text-brand-100">Erwartete Arbeitszahl (JAZ):</span>
+          <span class="font-data font-bold text-lg text-accent-400" id="result-cop">4,3 (COP)</span>
+        </div>
+
+        <!-- Strombedarf Wärmepumpe -->
+        <div class="flex justify-between items-center py-2 border-b border-brand-700/50">
+          <span class="text-sm text-brand-100">Heizstrombedarf / Jahr:</span>
+          <span class="font-data font-bold text-lg text-white" id="result-power-demand">3.953 kWh</span>
+        </div>
+
+        <!-- Investition schlüsselfertig -->
+        <div class="flex justify-between items-center py-2 border-b border-brand-700/50">
+          <span class="text-sm text-brand-100">Kosten schlüsselfertig:</span>
+          <span class="font-data font-bold text-lg text-white" id="result-gross-cost">24.200 €</span>
+        </div>
+
+        <!-- Staatliche Förderung -->
+        <div class="flex justify-between items-center py-2 border-b border-brand-700/50">
+          <span class="text-sm text-brand-100">Staatliche KfW-Förderung (<span id="result-subsidy-rate">55</span>%):</span>
+          <span class="font-data font-bold text-lg text-green-300" id="result-subsidy-sum">- 13.310 €</span>
+        </div>
+
+        <!-- Netto-Kosten -->
+        <div class="flex justify-between items-center py-2 border-b border-brand-700/50">
+          <span class="text-sm text-brand-100 font-bold">Effektive Netto-Kosten:</span>
+          <span class="font-data font-extrabold text-xl text-accent-400" id="result-net-cost">10.890 €</span>
+        </div>
+
+        <!-- Heizkosten & Ersparnis -->
+        <div class="space-y-2">
+          <span class="text-xs text-brand-200 block uppercase font-semibold">Laufende Heizkosten im Vergleich:</span>
+          <div class="bg-brand-900/60 rounded-xl p-4 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-brand-100">Fossiles System (Gas/Öl @ 12ct):</span>
+              <span class="font-data font-semibold text-red-300" id="result-old-heating-cost">2.400 € / Jahr</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-brand-100">Wärmepumpe (Heizstrom @ 28ct):</span>
+              <span class="font-data font-semibold text-green-300" id="result-new-heating-cost">1.107 € / Jahr</span>
+            </div>
+            <div class="flex justify-between text-base border-t border-brand-700/50 pt-2 mt-2">
+              <span class="font-semibold text-white">Gesamtersparnis / Jahr:</span>
+              <span class="font-data font-bold text-green-400" id="result-annual-savings">+ 1.293 €</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amortisationszeit -->
+        <div class="bg-accent-500 rounded-xl p-5 text-center shadow-inner">
+          <span class="text-xs text-brand-100 block uppercase font-bold tracking-wider">Amortisationszeit (ROI)</span>
+          <span class="font-data font-extrabold text-3xl text-white block mt-1" id="result-roi">8,4 Jahre</span>
+          <span class="text-[10px] text-brand-100 block mt-1">Danach heizen Sie über 15+ Jahre hocheffizient und CO₂-neutral!</span>
+        </div>
+
+        <a href="/angebot" class="block w-full text-center cta-gradient text-white font-bold py-4 rounded-xl transition-all shadow-lg text-base">
+          🔥 Angebote kostenlos vergleichen →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cross-links: Guides -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-200">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 font-heading">📚 Nützliche Wärmepumpen-Ratgeber</h2>
+    <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <a href="/ratgeber/waermepumpe-kosten-2026" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-brand-200 hover:shadow-md transition-all group card-hover">
+        <span class="text-lg block mb-1">💰</span>
+        <span class="font-bold text-gray-900 group-hover:text-brand-600 text-sm block">Wärmepumpen Preise 2026</span>
+      </a>
+      <a href="/ratgeber/waermepumpe-foerderung-2026" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-brand-200 hover:shadow-md transition-all group card-hover">
+        <span class="text-lg block mb-1">🏛️</span>
+        <span class="font-bold text-gray-900 group-hover:text-brand-600 text-sm block">KfW-Förderung 2026</span>
+      </a>
+      <a href="/ratgeber/waermepumpe-altbau" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-brand-200 hover:shadow-md transition-all group card-hover">
+        <span class="text-lg block mb-1">🧱</span>
+        <span class="font-bold text-gray-900 group-hover:text-brand-600 text-sm block">Eignung im Altbau</span>
+      </a>
+      <a href="/ratgeber/laufende-kosten" class="bg-white rounded-xl p-4 border border-gray-200 hover:border-brand-200 hover:shadow-md transition-all group card-hover">
+        <span class="text-lg block mb-1">🔌</span>
+        <span class="font-bold text-gray-900 group-hover:text-brand-600 text-sm block">Laufende Stromkosten</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Interactive script to power calculations -->
+  <script is:inline>
+    (function() {
+      const areaInput = document.getElementById('area');
+      const areaVal = document.getElementById('area-val');
+      const fossilInput = document.getElementById('fossil');
+      const fossilVal = document.getElementById('fossil-val');
+      const altBoilerCheck = document.getElementById('alt-boiler');
+
+      const wpTypes = document.getElementsByName('wp-type');
+      const heatSystems = document.getElementsByName('heat-system');
+      const regions = document.getElementsByName('region');
+
+      function updateRadioLabels(name, activeId) {
+        const els = document.getElementsByName(name);
+        els.forEach(el => {
+          const parent = el.closest('label');
+          if (parent) {
+            if (parent.id === activeId) {
+              parent.classList.remove('border-gray-200', 'hover:border-brand-200', 'bg-white');
+              parent.classList.add('border-brand-600', 'bg-brand-50');
+            } else {
+              parent.classList.remove('border-brand-600', 'bg-brand-50');
+              parent.classList.add('border-gray-200', 'hover:border-brand-200', 'bg-white');
+            }
+          }
+        });
+      }
+
+      function calculate() {
+        const area = parseInt(areaInput.value);
+        areaVal.textContent = area + ' m²';
+
+        const fossil = parseInt(fossilInput.value);
+        fossilVal.textContent = fossil.toLocaleString('de-DE') + ' kWh';
+
+        let wpType = 'standard';
+        wpTypes.forEach(el => { if (el.checked) wpType = el.value; });
+
+        let heatSystem = 'floor';
+        heatSystems.forEach(el => { if (el.checked) heatSystem = el.value; });
+
+        let region = 'south';
+        regions.forEach(el => { if (el.checked) region = el.value; });
+
+        const isAltBoiler = altBoilerCheck.checked;
+
+        // COP / JAZ Mapping
+        let cop = 3.5;
+        if (wpType === 'standard') {
+          if (heatSystem === 'floor') cop = 3.9;
+          else if (heatSystem === 'lowtemp') cop = 3.5;
+          else cop = 3.0;
+        } else { // premium
+          if (heatSystem === 'floor') cop = 4.3;
+          else if (heatSystem === 'lowtemp') cop = 3.8;
+          else cop = 3.3;
+        }
+
+        // Region factor
+        let factor = 1.0;
+        if (region === 'south') factor = 1.05;
+        else if (region === 'north') factor = 0.95;
+        else if (region === 'east') factor = 0.90;
+
+        // Base Cost Calculation
+        let baseCost = 22000;
+        if (wpType === 'standard') {
+          baseCost = 20000 + (area - 80) * 60;
+        } else { // premium
+          baseCost = 30000 + (area - 80) * 90;
+        }
+
+        const totalCost = Math.round(baseCost * factor);
+
+        // Subsidies (KfW 458)
+        let subsidyRate = 0.30; // Basis
+        if (isAltBoiler) subsidyRate += 0.20; // Klimageschwindigkeits-Bonus
+        if (wpType === 'premium') subsidyRate += 0.05; // Effizienz-Bonus for natural R290 refrigerant
+
+        // Cap eligible costs at 30.000 €
+        const eligibleCostCap = 30000;
+        const subsidySum = Math.round(Math.min(totalCost, eligibleCostCap) * subsidyRate);
+        const netCost = totalCost - subsidySum;
+
+        // Heizbedarf und Strombedarf
+        // Bisheriger fossiler Verbrauch * 0.85 Wirkungsgrad = geschätzter Wärmeenergiebedarf
+        const heatDemand = fossil * 0.85;
+        const powerDemand = Math.round(heatDemand / cop);
+
+        // Heizstrompreis: 28 Cent, Gaspreis: 12 Cent
+        const oldHeatingCost = Math.round(fossil * 0.12);
+        const newHeatingCost = Math.round(powerDemand * 0.28);
+        const annualSavings = oldHeatingCost - newHeatingCost;
+
+        // ROI
+        const roi = netCost / (annualSavings > 0 ? annualSavings : 1);
+
+        // DOM-Updates
+        document.getElementById('result-cop').textContent = `${cop.toFixed(1)} (JAZ)`;
+        document.getElementById('result-power-demand').textContent = powerDemand.toLocaleString('de-DE') + ' kWh';
+        document.getElementById('result-gross-cost').textContent = totalCost.toLocaleString('de-DE') + ' €';
+        document.getElementById('result-subsidy-rate').textContent = Math.round(subsidyRate * 100);
+        document.getElementById('result-subsidy-sum').textContent = `- ${subsidySum.toLocaleString('de-DE')} €`;
+        document.getElementById('result-net-cost').textContent = netCost.toLocaleString('de-DE') + ' €';
+        document.getElementById('result-old-heating-cost').textContent = `${oldHeatingCost.toLocaleString('de-DE')} € / Jahr`;
+        document.getElementById('result-new-heating-cost').textContent = `${newHeatingCost.toLocaleString('de-DE')} € / Jahr`;
+        
+        const savingsEl = document.getElementById('result-annual-savings');
+        if (annualSavings > 0) {
+          savingsEl.textContent = `+ ${annualSavings.toLocaleString('de-DE')} €`;
+          savingsEl.className = 'font-data font-bold text-green-400';
+        } else {
+          savingsEl.textContent = `${annualSavings.toLocaleString('de-DE')} €`;
+          savingsEl.className = 'font-data font-bold text-red-400';
+        }
+
+        const roiEl = document.getElementById('result-roi');
+        if (annualSavings > 0) {
+          roiEl.textContent = `${roi.toFixed(1)} Jahre`;
+        } else {
+          roiEl.textContent = 'N/A';
+        }
+      }
+
+      areaInput.addEventListener('input', calculate);
+      fossilInput.addEventListener('input', calculate);
+      altBoilerCheck.addEventListener('change', calculate);
+
+      wpTypes.forEach(el => {
+        el.addEventListener('change', (e) => {
+          updateRadioLabels('wp-type', e.target.closest('label').id);
+          calculate();
+        });
+      });
+
+      heatSystems.forEach(el => {
+        el.addEventListener('change', (e) => {
+          updateRadioLabels('heat-system', e.target.closest('label').id);
+          calculate();
+        });
+      });
+
+      regions.forEach(el => {
+        el.addEventListener('change', (e) => {
+          updateRadioLabels('region', e.target.closest('label').id);
+          calculate();
+        });
+      });
+
+      calculate();
+    })();
+  </script>
+</BaseLayout>

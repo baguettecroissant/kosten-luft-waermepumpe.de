@@ -1,0 +1,579 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteConfig } from '../../../site.config';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const budgetFaq = [
+  {
+    id: "b1",
+    cat: "budget",
+    q: "Was kostet eine Luft-Wasser-Wärmepumpe inklusive Einbau 2026?",
+    a: "Eine Luft-Wasser-Wärmepumpe kostet 2026 inklusive Installation und Demontage der Altheizung vor Abzug von Fördermitteln zwischen <strong>20.000 € und 35.000 €</strong>. Premium-Modelle (leiser, smarter, mit Propan-Kältemittel R290) liegen bei <strong>30.000 € und 45.000 €</strong>. Mit der staatlichen KfW-Förderung von bis zu 70% kann sich Ihr effektiver Eigenanteil jedoch auf nur noch <strong>9.000 € bis 15.000 €</strong> reduzieren."
+  },
+  {
+    id: "b2",
+    cat: "budget",
+    q: "Wie hoch sind die jährlichen Betriebskosten einer Wärmepumpe?",
+    a: "Die jährlichen Stromkosten einer Luft-Wasser-Wärmepumpe liegen für ein typisches Einfamilienhaus (150 m² Wohnfläche, 15.000 kWh Wärmebedarf) bei ca. <strong>1.200 € bis 1.800 €</strong> (Heizstrombedarf ca. 4.300 kWh à 28-35 ct). Wartung und Messung kosten rund 150 € alle zwei Jahre. Da kein Schornsteinfeger benötigt wird, sparen Sie zusätzlich Unterhaltskosten."
+  },
+  {
+    id: "b3",
+    cat: "budget",
+    q: "Wie viel Heizkosten spart eine Wärmepumpe im Vergleich zu Gas oder Öl?",
+    a: "Eine Wärmepumpe spart jährlich etwa <strong>1.300 € bis 2.700 €</strong> gegenüber einer veralteten Öl- oder Gasheizung. Da fossile Energieträger durch das BEHG (CO2-Steuer) bis 2026 und darüber hinaus kontinuierlich verteuert werden, wächst der finanzielle Vorsprung der Wärmepumpe jedes Jahr weiter an."
+  }
+];
+
+const subsidiesFaq = [
+  {
+    id: "s1",
+    cat: "subsidies",
+    q: "Welche staatliche Förderung gibt es 2026 für Wärmepumpen?",
+    a: "Die zentrale staatliche Heizungsförderung läuft über das KfW-Programm 458. Es setzt sich aus folgenden Bausteinen zusammen: <ol><li><strong>30% Grundförderung</strong> für alle privaten Hauseigentümer beim Heizungstausch.</li><li><strong>+20% Klimageschwindigkeits-Bonus</strong> für den schnellen Austausch alter Öl-, Kohle-, Nachtspeicher- oder über 20 Jahre alter Gasheizungen (nur für selbstnutzende Eigentümer).</li><li><strong>+30% Einkommens-Bonus</strong> bei einem zu versteuernden Haushaltseinkommen unter 40.000 €/Jahr (nur für selbstnutzende Eigentümer).</li><li><strong>+5% Effizienz-Bonus</strong> für natürliche Kältemittel (z.B. Propan R290).</li></ol> Die Zuschüsse sind auf 70% bzw. maximal 21.000 € begrenzt."
+  },
+  {
+    id: "s2",
+    cat: "subsidies",
+    q: "Wie wird der KfW-Ergänzungskredit beantragt?",
+    a: "Ergänzend zum Zuschuss können private Eigentümer mit einem Haushaltsjahreseinkommen bis 90.000 € den zinsgünstigen KfW-Ergänzungskredit (Programme 358/359) mit bis zu 120.000 € Kreditsumme über ihre Hausbank beantragen. Dies sichert die Liquidität bei der Heizungssanierung ab."
+  },
+  {
+    id: "s3",
+    cat: "subsidies",
+    q: "Gibt es zusätzliche regionale Förderungen?",
+    a: "Ja, einige Bundesländer sowie viele Kommunen bieten eigene Zuschussprogramme an, die oft mit der KfW-Förderung kumuliert werden können. Das Land Nordrhein-Westfalen oder Baden-Württemberg bezuschussen beispielsweise Begleitmaßnahmen wie den hydraulischen Abgleich, Elektroarbeiten oder die Kombination mit einer PV-Anlage."
+  }
+];
+
+const techFaq = [
+  {
+    id: "t1",
+    cat: "tech",
+    q: "Wie laut ist das Außengerät einer Wärmepumpe im Betrieb?",
+    a: "Moderne Luft-Wärmepumpen sind extrem leise. Im Normalbetrieb beträgt der Schallleistungspegel ca. 45 bis 50 dB(A). Im schallreduzierten Nachtmodus sinkt der Schalldruckpegel im Abstand von 3 Metern meist auf 30 bis 35 dB(A) — das entspricht dem Blätterrauschen. Um Lärmkonflikte nach der TA Lärm zu vermeiden, sollte ein Mindestabstand von 3 Metern zu Nachbargrenzen gewahrt werden."
+  },
+  {
+    id: "t2",
+    cat: "tech",
+    q: "Was bedeuten die Werte COP und JAZ bei Wärmepumpen?",
+    a: "Der <strong>COP (Coefficient of Performance)</strong> ist der Wirkungsgrad unter Laborbedingungen (z.B. A7/W35 = Luft 7°C, Wasser 35°C). Eine COP von 4,0 bedeutet, dass aus 1 kWh Strom 4 kWh Wärme entstehen. Die <strong>JAZ (Jahresarbeitszahl)</strong> misst das tatsächliche Verhältnis über ein ganzes Kalenderjahr im realen Hausbetrieb. Für eine wirtschaftliche Luft-Wasser-Wärmepumpe sollte die JAZ zwischen 3,5 und 4,0 liegen."
+  }
+];
+
+const storageFaq = [
+  {
+    id: "st1",
+    cat: "storage",
+    q: "Funktioniert eine Wärmepumpe im Altbau ohne Fußbodenheizung?",
+    a: "Ja, hocheffiziente Luft-Wasser-Wärmepumpen können problemlos mit klassischen Plattenheizkörpern betrieben werden. Durch das Kältemittel Propan R290 erreichen sie Vorlauftemperaturen von bis zu 65°C. Oft reicht der gezielte Austausch einzelner, zu kleiner Heizkörper gegen Niedertemperatur-Modelle aus, um das gesamte Heizsystem wärmepumpentauglich zu machen."
+  },
+  {
+    id: "st2",
+    cat: "storage",
+    q: "Ist eine zusätzliche Dämmung des Altbaus zwingend erforderlich?",
+    a: "Nein, eine Komplettdämmung ist nicht zwingend nötig. Jedoch senkt jede kleine Dämmmaßnahme (z. B. Dämmung der obersten Geschossdecke für wenige hundert Euro) die Heizlast des Gebäudes. Dadurch kann eine kleinere, günstigere Wärmepumpe gewählt werden, die mit weniger Strom läuft."
+  }
+];
+
+const installFaq = [
+  {
+    id: "i1",
+    cat: "install",
+    q: "Muss ich eine Wärmepumpe behördlich genehmigen lassen?",
+    a: "Für die Aufstellung einer Luft-Wasser-Wärmepumpe im Außenbereich ist in fast allen deutschen Bundesländern <strong>keine Baugenehmigung erforderlich</strong>. Die Anlage muss jedoch beim zuständigen Verteilnetzbetreiber angemeldet werden. Seit 2024 gilt hierfür der EnWG § 14a, der im Gegenzug für eine theoretische Drosselbarkeit stark reduzierte Netzentgelte (günstigen Wärmepumpenstrom) garantiert. Die Anmeldung übernimmt üblicherweise der installierende SHK-Fachbetrieb für Sie."
+  },
+  {
+    id: "i2",
+    cat: "install",
+    q: "Wie lange dauert der Einbau einer neuen Wärmepumpe?",
+    a: "Die reine Montagezeit im Haus beträgt meist nur <strong>3 bis 4 Tage</strong>. Zuerst wird die alte Öl- oder Gasheizung demontiert (1 Tag), danach die Innen- und Außeneinheit montiert sowie die Kernbohrung durchgeführt (1-2 Tage), und am letzten Tag erfolgen Elektroanschluss, Befüllung, hydraulischer Abgleich und Inbetriebnahme."
+  }
+];
+
+const faqCategories = [
+  { id: "all", name: "Alle", icon: "📋" },
+  { id: "budget", name: "Preise & Kosten", icon: "💰" },
+  { id: "subsidies", name: "Förderung & GEG", icon: "🏛️" },
+  { id: "tech", name: "Technik & Lärm", icon: "⚙️" },
+  { id: "storage", name: "Heizkörper & Altbau", icon: "🏠" },
+  { id: "install", name: "Einbau & Partner", icon: "🔧" }
+];
+
+const allFaq = [...budgetFaq, ...subsidiesFaq, ...techFaq, ...storageFaq, ...installFaq];
+
+// FAQ JSON-LD formatting
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": allFaq.map(f => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": f.a.replace(/<\/?[^>]+(>|$)/g, "") // Clean HTML tags for JSON schema compliance
+      }
+    }))
+  }
+];
+---
+
+<BaseLayout
+  title={`FAQ Wärmepumpe 2026: Fragen & Antworten zu Kosten & Einbau | ${siteConfig.name}`}
+  description={`Experten-Antworten auf Ihre Fragen zu Wärmepumpen: Preise für Geräte und Installation, staatliche KfW-Förderung, Altbau-Eignung und Lärmschutz.`}
+  canonical="/faq"
+  jsonLd={jsonLd}
+>
+  <!-- Hero Section -->
+  <section class="gradient-hero text-white py-12 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <Breadcrumbs items={[
+        { label: "FAQ", href: "/faq" },
+      ]} />
+      <h1 class="text-3xl md:text-5xl font-extrabold mb-4 font-heading mt-6 tracking-tight">
+        ❓ Häufig gestellte Fragen (FAQ)
+      </h1>
+      <p class="text-brand-50 text-lg max-w-3xl font-medium leading-relaxed font-heading">
+        Sie haben Fragen zu Technik, Genehmigungen, Preisen oder der KfW-Förderung? Hier finden Sie verlässliche Antworten unseres Expertenteams.
+      </p>
+    </div>
+  </section>
+
+  <!-- Interactive Controls Section -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20">
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-xl space-y-6">
+      
+      <!-- Live Search Box -->
+      <div class="relative max-w-2xl mx-auto">
+        <label for="faq-search" class="sr-only">Frage suchen</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brand-650">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            type="search"
+            id="faq-search"
+            placeholder="Suchbegriff eingeben (z. B. Förderung, Lautstärke, Altbau, Heizkörper...)"
+            class="block w-full pl-12 pr-10 py-4 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-base shadow-sm transition-all"
+          />
+          <button 
+            type="button" 
+            id="search-clear" 
+            class="hidden absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-900 transition-colors"
+            aria-label="Suche löschen"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p id="search-status" class="mt-2 text-xs font-semibold text-brand-700 text-center transition-opacity duration-200 h-4"></p>
+      </div>
+
+      <!-- Categories Pills Filter -->
+      <div class="border-t border-gray-100 pt-5">
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider text-center mb-3">Nach Thema filtern</p>
+        <div class="flex flex-wrap justify-center gap-2 max-w-4xl mx-auto" role="tablist">
+          {faqCategories.map(cat => {
+            const count = cat.id === 'all' ? allFaq.length : allFaq.filter(f => f.cat === cat.id).length;
+            return (
+              <button
+                type="button"
+                data-filter={cat.id}
+                role="tab"
+                aria-selected={cat.id === 'all' ? "true" : "false"}
+                class={`flex items-center gap-2 px-4 py-2 text-xs md:text-sm font-bold rounded-full border transition-all duration-200 shadow-sm cursor-pointer select-none
+                  ${cat.id === 'all'
+                    ? 'bg-brand-700 text-white border-brand-700 ring-2 ring-brand-700/20'
+                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                  }`}
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.name}</span>
+                <span class={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ${cat.id === 'all' ? 'bg-brand-800 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Accordions List Section -->
+  <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div id="faq-container" class="space-y-12">
+      
+      <!-- Category 1 -->
+      <div class="faq-group-section" data-cat-section="budget">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-6 font-heading border-b border-gray-200 pb-2.5 flex items-center gap-3">
+          <span class="p-1.5 bg-brand-50 rounded-lg text-lg">💰</span> Preise & Kosten
+        </h2>
+        <div class="space-y-4">
+          {budgetFaq.map(item => (
+            <details 
+              class="faq-card bg-white border border-gray-200 rounded-2xl overflow-hidden group shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-md" 
+              data-item-cat={item.cat} 
+              id={item.id}
+            >
+              <summary class="flex justify-between items-center p-5 font-extrabold text-gray-800 text-sm md:text-base hover:bg-brand-50/40 transition-colors select-none cursor-pointer">
+                <span class="faq-question-text pr-4">{item.q}</span>
+                <svg class="w-5 h-5 text-gray-500 faq-chevron transform group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div class="px-5 pb-5 pt-1 text-sm md:text-base text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50/20 prose max-w-none">
+                <div class="faq-answer-text" set:html={item.a} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <!-- Category 2 -->
+      <div class="faq-group-section" data-cat-section="subsidies">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-6 font-heading border-b border-gray-200 pb-2.5 flex items-center gap-3">
+          <span class="p-1.5 bg-brand-50 rounded-lg text-lg">🏛️</span> Förderung & GEG-Vorgaben
+        </h2>
+        <div class="space-y-4">
+          {subsidiesFaq.map(item => (
+            <details 
+              class="faq-card bg-white border border-gray-200 rounded-2xl overflow-hidden group shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-md" 
+              data-item-cat={item.cat} 
+              id={item.id}
+            >
+              <summary class="flex justify-between items-center p-5 font-extrabold text-gray-800 text-sm md:text-base hover:bg-brand-50/40 transition-colors select-none cursor-pointer">
+                <span class="faq-question-text pr-4">{item.q}</span>
+                <svg class="w-5 h-5 text-gray-500 faq-chevron transform group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div class="px-5 pb-5 pt-1 text-sm md:text-base text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50/20 prose max-w-none">
+                <div class="faq-answer-text" set:html={item.a} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <!-- Category 3 -->
+      <div class="faq-group-section" data-cat-section="tech">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-6 font-heading border-b border-gray-200 pb-2.5 flex items-center gap-3">
+          <span class="p-1.5 bg-brand-50 rounded-lg text-lg">⚙️</span> Technik & Lärmschutz
+        </h2>
+        <div class="space-y-4">
+          {techFaq.map(item => (
+            <details 
+              class="faq-card bg-white border border-gray-200 rounded-2xl overflow-hidden group shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-md" 
+              data-item-cat={item.cat} 
+              id={item.id}
+            >
+              <summary class="flex justify-between items-center p-5 font-extrabold text-gray-800 text-sm md:text-base hover:bg-brand-50/40 transition-colors select-none cursor-pointer">
+                <span class="faq-question-text pr-4">{item.q}</span>
+                <svg class="w-5 h-5 text-gray-500 faq-chevron transform group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div class="px-5 pb-5 pt-1 text-sm md:text-base text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50/20 prose max-w-none">
+                <div class="faq-answer-text" set:html={item.a} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <!-- Category 4 -->
+      <div class="faq-group-section" data-cat-section="storage">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-6 font-heading border-b border-gray-200 pb-2.5 flex items-center gap-3">
+          <span class="p-1.5 bg-brand-50 rounded-lg text-lg">🏠</span> Heizkörper & Altbau
+        </h2>
+        <div class="space-y-4">
+          {storageFaq.map(item => (
+            <details 
+              class="faq-card bg-white border border-gray-200 rounded-2xl overflow-hidden group shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-md" 
+              data-item-cat={item.cat} 
+              id={item.id}
+            >
+              <summary class="flex justify-between items-center p-5 font-extrabold text-gray-800 text-sm md:text-base hover:bg-brand-50/40 transition-colors select-none cursor-pointer">
+                <span class="faq-question-text pr-4">{item.q}</span>
+                <svg class="w-5 h-5 text-gray-500 faq-chevron transform group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div class="px-5 pb-5 pt-1 text-sm md:text-base text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50/20 prose max-w-none">
+                <div class="faq-answer-text" set:html={item.a} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <!-- Category 5 -->
+      <div class="faq-group-section" data-cat-section="install">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-6 font-heading border-b border-gray-200 pb-2.5 flex items-center gap-3">
+          <span class="p-1.5 bg-brand-50 rounded-lg text-lg">🔧</span> Einbau & Partnerbetriebe
+        </h2>
+        <div class="space-y-4">
+          {installFaq.map(item => (
+            <details 
+              class="faq-card bg-white border border-gray-200 rounded-2xl overflow-hidden group shadow-sm transition-all duration-300 hover:border-brand-300 hover:shadow-md" 
+              data-item-cat={item.cat} 
+              id={item.id}
+            >
+              <summary class="flex justify-between items-center p-5 font-extrabold text-gray-800 text-sm md:text-base hover:bg-brand-50/40 transition-colors select-none cursor-pointer">
+                <span class="faq-question-text pr-4">{item.q}</span>
+                <svg class="w-5 h-5 text-gray-500 faq-chevron transform group-open:rotate-180 transition-transform duration-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div class="px-5 pb-5 pt-1 text-sm md:text-base text-gray-600 leading-relaxed border-t border-gray-100 bg-gray-50/20 prose max-w-none">
+                <div class="faq-answer-text" set:html={item.a} />
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <!-- No Results State -->
+      <div id="faq-empty-state" class="hidden text-center py-12 px-4 bg-brand-50/30 rounded-2xl border border-brand-200">
+        <span class="text-5xl">🔍</span>
+        <h3 class="text-lg font-bold text-gray-900 mt-4 mb-2">Keine Ergebnisse gefunden</h3>
+        <p class="text-gray-600 text-sm max-w-md mx-auto font-heading">
+          Wir konnten keine Antwort für "<span id="search-query-highlight" class="font-bold text-brand-700"></span>" finden. Versuchen Sie es mit einem anderen Begriff (z. B. "Förderung", "Lärm" oder "Altbau").
+        </p>
+        <button 
+          type="button" 
+          id="faq-reset-btn"
+          class="mt-5 inline-flex items-center gap-2 bg-brand-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-brand-800 transition-colors shadow-sm cursor-pointer font-heading"
+        >
+          Suche zurücksetzen
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Final CTA card -->
+    <div class="cta-gradient rounded-2xl p-8 md:p-12 text-center text-white mt-16 shadow-xl relative overflow-hidden">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.15),transparent)] pointer-events-none"></div>
+      <div class="relative z-10">
+        <h2 class="text-2xl md:text-3xl font-extrabold mb-4 font-heading tracking-tight">
+          Sie planen einen konkreten Heizungstausch?
+        </h2>
+        <p class="text-brand-50 mb-8 text-sm md:text-base max-w-xl mx-auto leading-relaxed font-heading">
+          Berechnen Sie unverbindlich Ihr Sparpotenzial und vergleichen Sie kostenlose Angebote von geprüften Heizungsbetrieben aus Ihrer Postleitzahlen-Region.
+        </p>
+        <a href="/angebot" class="inline-flex items-center justify-center bg-white text-[#E65100] font-extrabold px-8 py-4 rounded-xl hover:bg-gray-100 hover:scale-105 transition-all shadow-md text-base font-heading">
+          🔥 Angebote kostenlos vergleichen
+        </a>
+      </div>
+    </div>
+
+    <!-- Cross-links: Guides -->
+    <section class="mt-12 bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8">
+      <h2 class="text-xl font-bold text-gray-900 mb-4 font-heading">📚 Wärmepumpen-Ratgeber lesen</h2>
+      <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="/ratgeber/waermepumpe-kosten-2026" class="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-brand-200 hover:shadow-md transition-all group">
+          <span class="text-lg block mb-1">💰</span>
+          <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">WP Kosten 2026</span>
+        </a>
+        <a href="/ratgeber/waermepumpe-foerderung-2026" class="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-brand-200 hover:shadow-md transition-all group">
+          <span class="text-lg block mb-1">🏛️</span>
+          <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">KfW Förderung</span>
+        </a>
+        <a href="/ratgeber/luft-wasser-waermepumpe" class="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-brand-200 hover:shadow-md transition-all group">
+          <span class="text-lg block mb-1">☘️</span>
+          <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">Luft-Wasser-WP</span>
+        </a>
+        <a href="/ratgeber/waermepumpe-altbau" class="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-brand-200 hover:shadow-md transition-all group">
+          <span class="text-lg block mb-1">🏠</span>
+          <span class="font-bold text-gray-900 group-hover:text-brand-700 text-sm block font-heading">WP im Altbau</span>
+        </a>
+      </div>
+      <div class="text-center mt-4">
+        <a href="/ratgeber" class="text-brand-700 hover:text-brand-800 font-semibold text-sm transition-colors underline font-heading">Alle Ratgeber →</a>
+      </div>
+    </section>
+  </section>
+</BaseLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('faq-search') as HTMLInputElement | null;
+    const clearButton = document.getElementById('search-clear') as HTMLButtonElement | null;
+    const searchStatus = document.getElementById('search-status') as HTMLParagraphElement | null;
+    const emptyState = document.getElementById('faq-empty-state') as HTMLDivElement | null;
+    const highlightSpan = document.getElementById('search-query-highlight') as HTMLSpanElement | null;
+    const resetBtn = document.getElementById('faq-reset-btn') as HTMLButtonElement | null;
+    const cards = document.querySelectorAll('.faq-card') as NodeListOf<HTMLDetailsElement>;
+    const groupSections = document.querySelectorAll('.faq-group-section') as NodeListOf<HTMLDivElement>;
+    const filterButtons = document.querySelectorAll('[data-filter]') as NodeListOf<HTMLButtonElement>;
+
+    let currentCategory = 'all';
+    let searchQuery = '';
+
+    const originalTextCache = new Map<string, { q: string; a: string }>();
+    cards.forEach(card => {
+      const qText = card.querySelector('.faq-question-text');
+      const aText = card.querySelector('.faq-answer-text');
+      if (qText && aText) {
+        originalTextCache.set(card.id, {
+          q: qText.innerHTML,
+          a: aText.innerHTML
+        });
+      }
+    });
+
+    const stripHtml = (html: string) => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      return doc.body.textContent || "";
+    };
+
+    const highlight = (text: string, term: string) => {
+      if (!term) return text;
+      const escapedTerm = term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`(${escapedTerm})`, 'gi');
+      return text.replace(regex, '<mark class="bg-brand-100 text-brand-900 px-0.5 rounded font-semibold">$1</mark>');
+    };
+
+    const updateFaq = () => {
+      let visibleCount = 0;
+      const normalizedQuery = searchQuery.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      if (clearButton) {
+        if (searchQuery.length > 0) {
+          clearButton.classList.remove('hidden');
+        } else {
+          clearButton.classList.add('hidden');
+        }
+      }
+
+      cards.forEach(card => {
+        const cache = originalTextCache.get(card.id);
+        const qTextEl = card.querySelector('.faq-question-text');
+        const aTextEl = card.querySelector('.faq-answer-text');
+
+        if (!cache || !qTextEl || !aTextEl) return;
+
+        const categoryMatches = (currentCategory === 'all' || card.dataset.itemCat === currentCategory);
+        
+        const plainQ = stripHtml(cache.q).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const plainA = stripHtml(cache.a).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const textMatches = searchQuery.length === 0 || 
+                            plainQ.includes(normalizedQuery) || 
+                            plainA.includes(normalizedQuery);
+
+        if (categoryMatches && textMatches) {
+          card.classList.remove('hidden');
+          visibleCount++;
+          
+          if (searchQuery.length > 0) {
+            qTextEl.innerHTML = highlight(cache.q, searchQuery);
+            aTextEl.innerHTML = highlight(cache.a, searchQuery);
+            card.open = true;
+          } else {
+            qTextEl.innerHTML = cache.q;
+            aTextEl.innerHTML = cache.a;
+            card.open = false;
+          }
+        } else {
+          card.classList.add('hidden');
+          card.open = false;
+        }
+      });
+
+      groupSections.forEach(section => {
+        const sectionCat = section.dataset.catSection;
+        const hasVisibleInGroup = Array.from(cards).some(card => 
+          !card.classList.contains('hidden') && card.dataset.itemCat === sectionCat
+        );
+        
+        if (hasVisibleInGroup && (currentCategory === 'all' || currentCategory === sectionCat)) {
+          section.classList.remove('hidden');
+        } else {
+          section.classList.add('hidden');
+        }
+      });
+
+      if (searchStatus) {
+        if (searchQuery.length > 0) {
+          searchStatus.textContent = `${visibleCount} Frage(n) gefunden`;
+          searchStatus.style.opacity = '1';
+        } else {
+          searchStatus.style.opacity = '0';
+        }
+      }
+
+      if (emptyState && highlightSpan) {
+        if (visibleCount === 0) {
+          emptyState.classList.remove('hidden');
+          highlightSpan.textContent = searchQuery;
+        } else {
+          emptyState.classList.add('hidden');
+        }
+      }
+    };
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = (e.target as HTMLInputElement).value;
+        updateFaq();
+      });
+    }
+
+    if (clearButton && searchInput) {
+      clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        updateFaq();
+        searchInput.focus();
+      });
+    }
+
+    if (resetBtn && searchInput) {
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        currentCategory = 'all';
+        
+        filterButtons.forEach(btn => {
+          if (btn.dataset.filter === 'all') {
+            btn.classList.add('bg-brand-700', 'text-white', 'border-brand-700', 'ring-2', 'ring-brand-700/20');
+            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+            btn.setAttribute('aria-selected', 'true');
+          } else {
+            btn.classList.remove('bg-brand-700', 'text-white', 'border-brand-700', 'ring-2', 'ring-brand-700/20');
+            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+            btn.setAttribute('aria-selected', 'false');
+          }
+        });
+
+        updateFaq();
+      });
+    }
+
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter || 'all';
+        currentCategory = filter;
+
+        filterButtons.forEach(btn => {
+          if (btn.dataset.filter === filter) {
+            btn.classList.add('bg-brand-700', 'text-white', 'border-brand-700', 'ring-2', 'ring-brand-700/20');
+            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+            btn.setAttribute('aria-selected', 'true');
+          } else {
+            btn.classList.remove('bg-brand-700', 'text-white', 'border-brand-700', 'ring-2', 'ring-brand-700/20');
+            btn.classList.add('bg-white', 'text-gray-700', 'border-gray-200');
+            btn.setAttribute('aria-selected', 'false');
+          }
+        });
+
+        updateFaq();
+      });
+    });
+  });
+</script>

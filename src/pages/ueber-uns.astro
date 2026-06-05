@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../../site.config';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Über uns - " + siteConfig.name,
+    "url": "https://" + siteConfig.domain + "/ueber-uns",
+  }
+];
+---
+
+<BaseLayout title={`Über uns | ${siteConfig.name}`} description={`Lernen Sie kosten-luft-waermepumpe.de kennen. Wir informieren unabhängig über Preise, Förderung und Anbieter.`} canonical="/ueber-uns" jsonLd={jsonLd}>
+  <section class="gradient-hero text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <Breadcrumbs items={[
+        { label: "Über uns", href: "/ueber-uns" },
+      ]} />
+      <h1 class="text-3xl md:text-4xl font-extrabold mb-4 font-heading mt-6">
+        Über uns
+      </h1>
+      <p class="text-brand-50">Unabhängige Beratung und Informationen rund um das Thema Luft-Wasser-Wärmepumpen</p>
+    </div>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm space-y-6 text-gray-700 text-sm md:text-base leading-relaxed">
+      <h2 class="text-lg font-bold text-gray-900 mb-2 font-heading">Wer wir sind</h2>
+      <p>
+        <strong>kosten-luft-waermepumpe.de</strong> ist ein unabhängiges Informationsportal für Eigenheimbesitzer, die einen Heizungstausch auf eine Luft-Wasser-Wärmepumpe planen und sich vor dem Kauf einen klaren Überblick über Preise, staatliche Förderungen und passende Anbieter verschaffen möchten.
+      </p>
+
+      <h2 class="text-lg font-bold text-gray-900 mb-2 font-heading">Unsere Mission: Der neutrale Heizungsexperte</h2>
+      <p>
+        Der Wärmepumpen-Markt in Deutschland wächst rasant und kann für Verbraucher unübersichtlich sein. Die Angebote verschiedener Heizungsbauer weichen oft um mehrere tausend Euro ab. Unser Ziel ist es, Ihnen als digitaler, neutraler Experte fundierte Daten und verständliche Ratgeber an die Hand zu geben:
+      </p>
+      <ul class="list-disc pl-5 space-y-1">
+        <li><strong>Transparenz:</strong> Wir berechnen Richtwerte auf Basis regionaler Daten und Marktentwicklungen im Jahr 2026.</li>
+        <li><strong>Aktualität:</strong> Wir halten Sie über gesetzliche Änderungen (z.B. Gebäudeenergiegesetz GEG, KfW-Förderprogramme und Lärmschutzvorgaben) auf dem Laufenden.</li>
+        <li><strong>Unverbindlichkeit:</strong> Durch unsere Kooperation mit etablierten Partnernetzwerken wie der DAA GmbH (Bosch Gruppe) erhalten Sie Zugang zu bis zu 3 kostenfreien und unverbindlichen Angeboten von Heizungsbetrieben aus Ihrer Region.</li>
+      </ul>
+
+      <h2 class="text-lg font-bold text-gray-900 mb-2 font-heading">Warum sind unsere Services kostenlos?</h2>
+      <p>
+        Für Sie ist die Nutzung unseres Ratgeberportals und die Vermittlung von Angeboten zu 100% kostenfrei. Wir finanzieren uns über eine Vermittlungsprovision, die wir von unseren Kooperationspartnern erhalten, wenn eine erfolgreiche Verbindung zu einem Fachbetrieb hergestellt wird. Dadurch bleibt unser Portal für alle Leser frei zugänglich und werbefrei.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

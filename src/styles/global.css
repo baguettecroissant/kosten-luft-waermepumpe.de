@@ -1,0 +1,217 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Load fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+/* === PALETTE "LUFT-WÄRMEPUMPE" — Design System === */
+@theme {
+  /* Brand-Grün — Nachhaltigkeit, Ökologie und Energie */
+  --color-brand-50: #E8F5E9;   /* primary-light */
+  --color-brand-100: #C8E6C9;
+  --color-brand-200: #A5D6A7;
+  --color-brand-500: #2E7D32;  /* secondary (hover) */
+  --color-brand-600: #1B5E20;  /* primary */
+  --color-brand-700: #1B5E20;  /* primary */
+  --color-brand-800: #0D3C12;
+  --color-brand-900: #052208;
+
+  /* Accent-Orange — CTA und Wärme */
+  --color-accent-400: #FF8F00;  /* warning/orange */
+  --color-accent-500: #E65100;  /* primary CTA */
+  --color-accent-600: #BF360C;  /* CTA Hover */
+
+  /* Statusfarben */
+  --color-success: #00897B;
+  --color-warning: #FF8F00;
+
+  /* Backgrounds & Text */
+  --color-dark: #1A1A2E;
+  --color-text-dark: #1A1A2E;
+  --color-text-light: #616161;
+}
+
+/* === TYPOGRAPHIE === */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #1A1A2E;
+  background-color: #FAFBFC;
+}
+
+h1, h2, h3, h4, h5, h6,
+.font-heading {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.font-data,
+.font-mono {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+/* === HERO GRADIENT — Dunkelgrün mit Overlay === */
+.gradient-hero {
+  background: linear-gradient(135deg, rgba(27, 94, 32, 0.95) 0%, rgba(46, 125, 50, 0.90) 50%, rgba(27, 94, 32, 0.85) 100%);
+  padding-top: 5.5rem !important; /* Spacing for navbar */
+}
+
+.gradient-hero-image {
+  background-image: var(--hero-bg, none);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  padding-top: 6.5rem !important;
+}
+.gradient-hero-image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(27, 94, 32, 0.93), rgba(46, 125, 50, 0.85));
+  z-index: 0;
+}
+.gradient-hero-image > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* === CTA GRADIENT — Wärme Orange === */
+.cta-gradient {
+  background: linear-gradient(135deg, #E65100 0%, #FF8F00 100%);
+}
+.cta-gradient:hover {
+  background: linear-gradient(135deg, #BF360C 0%, #E65100 100%);
+  transform: scale(1.025);
+  box-shadow: 0 8px 24px rgba(230, 81, 0, 0.4);
+}
+
+/* === SECTION GRADIENT === */
+.section-gradient {
+  background: linear-gradient(180deg, #FAFBFC 0%, #E8F5E9 100%);
+}
+
+/* === MICRO-ANIMATIONS === */
+
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); opacity: 0.95; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+.pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.count-up {
+  animation: count-up 0.7s ease-out both;
+  animation-delay: 0.2s;
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -5px rgba(27, 94, 32, 0.12), 0 8px 16px -6px rgba(27, 94, 32, 0.06);
+  border-color: #A5D6A7;
+}
+
+@keyframes arrow-bounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+.arrow-animate:hover .arrow-icon {
+  animation: arrow-bounce 0.6s ease-in-out infinite;
+}
+
+/* === FAQ Accordion === */
+details summary {
+  cursor: pointer;
+  list-style: none;
+}
+details summary::-webkit-details-marker {
+  display: none;
+}
+details[open] summary .faq-chevron {
+  transform: rotate(180deg);
+}
+.faq-chevron {
+  transition: transform 0.25s ease;
+}
+
+/* === Price Cards === */
+.price-card {
+  border-left: 4px solid #E65100;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.price-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(230, 81, 0, 0.15);
+}
+
+/* === Info Cards === */
+.info-card {
+  background: #E8F5E9;
+  border-left: 4px solid #1B5E20;
+}
+
+/* === Price tables === */
+.price-table th {
+  background: #E8F5E9;
+  color: #1B5E20;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+}
+.price-table td.price {
+  font-family: 'IBM Plex Mono', monospace;
+  color: #E65100;
+  font-weight: 600;
+}
+.price-table tr:nth-child(even) {
+  background: #FAFBFC;
+}
+
+/* === Navbar scroll effect === */
+.navbar-scroll {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.navbar-scrolled {
+  background-color: rgba(27, 94, 32, 0.97) !important;
+  box-shadow: 0 4px 20px rgba(27, 94, 32, 0.2);
+}
+
+/* === Footer === */
+.footer-bg {
+  background-color: #1A1A2E;
+  color: #FAFBFC;
+}
+
+/* === Sticky CTA Animation === */
+.sticky-cta-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* === DSGVO Cookie Banner === */
+.cookie-banner {
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+}
